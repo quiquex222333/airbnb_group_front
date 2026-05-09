@@ -1,5 +1,5 @@
+import { Eye, EyeOff, Loader2, Lock, LogIn, Mail, PlaneTakeoff } from 'lucide-react';
 import React, { useState } from 'react';
-import { Mail, Lock, LogIn, PlaneTakeoff, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../features/auth/api';
 import { useAuthStore } from '../features/auth/store';
@@ -22,6 +22,7 @@ const LoginScreen = () => {
       setCredentials(res.data.user, res.data.accessToken);
       navigate('/dashboard');
     } catch (err: any) {
+      console.log(err);
       setErrorMsg(err.response?.data?.error?.message || 'Error de conexión');
     } finally {
       setIsLoading(false);
@@ -31,7 +32,7 @@ const LoginScreen = () => {
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4">
       {/* Background Image Native with V4 */}
-      <div 
+      <div
         className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-1000"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop')" }}
       >
@@ -41,7 +42,7 @@ const LoginScreen = () => {
 
       {/* Glassmorphism Container */}
       <div className="z-10 w-full max-w-md glass-panel rounded-3xl p-8 transform transition-all hover:scale-[1.01] duration-500">
-        
+
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg shadow-primary/30">
             <PlaneTakeoff className="text-white w-6 h-6" />
@@ -61,8 +62,8 @@ const LoginScreen = () => {
             <label className="text-sm font-medium text-gray-700 ml-1">Correo Electrónico</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input 
-                type="email" 
+              <input
+                type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +77,7 @@ const LoginScreen = () => {
             <label className="text-sm font-medium text-gray-700 ml-1">Contraseña</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-              <input 
+              <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
@@ -94,8 +95,8 @@ const LoginScreen = () => {
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={isLoading}
             className="w-full py-3 px-4 flex items-center justify-center bg-primary hover:bg-red-500 text-white font-semibold rounded-xl shadow-lg shadow-primary/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:hover:translate-y-0"
           >
