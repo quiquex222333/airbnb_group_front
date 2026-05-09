@@ -3,6 +3,7 @@ import { Heart, MessageSquareText, CalendarPlus, MapPin } from 'lucide-react';
 import type { Listing } from '../types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/features/auth/store';
 
 interface ListingCardProps {
   listing: Listing;
@@ -29,7 +30,11 @@ const pickFallback = (id: string) => {
 
 export function ListingCard({ listing, variant = 'compact' }: ListingCardProps) {
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
   const image = listing.imageUrl || pickFallback(listing.listingId);
+
+    // No mostrar Reservar si el listing es del usuario actual
+  const isOwner = user?.cognitoSub === listing.ownerId;
 
   return (
     <article
@@ -75,20 +80,20 @@ export function ListingCard({ listing, variant = 'compact' }: ListingCardProps) 
 
       {variant === 'full' && (
         <div className="mt-1 flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            className="rounded-full"
-            onClick={() => navigate(`/trips/new?listingId=${encodeURIComponent(listing.listingId)}`)}
-          >
-            <CalendarPlus className="mr-1 h-3.5 w-3.5" /> Reservar
-          </Button>
+          {!isOwner && (  // 👈 solo si no es el dueño
+            <Button
+              size="sm"
+              className="rounded-full"
+              onClick={() => navigate(`/trips/new?listingId=${encodeURIComponent(listing.listingId)}`)}
+            >
+              <CalendarPlus className="mr-1 h-3.5 w-3.5" /> Reservar
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
             className="rounded-full"
-            onClick={() =>
-              navigate(`/listings/${encodeURIComponent(listing.listingId)}/reviews`)
-            }
+            onClick={() => navigate(`/listings/${encodeURIComponent(listing.listingId)}/reviews`)}
           >
             <MessageSquareText className="mr-1 h-3.5 w-3.5" /> Reseñas
           </Button>

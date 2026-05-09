@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 
 interface BookingCardProps {
   booking: Booking;
+  listingName?: string;
 }
 
 const formatDate = (iso: string) => {
@@ -28,7 +29,7 @@ const statusStyles: Record<string, string> = {
   cancelled: 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
-export function BookingCard({ booking }: BookingCardProps) {
+export function BookingCard({ booking, listingName }: BookingCardProps) {
   const navigate = useNavigate();
   const status = booking.status?.toLowerCase();
   const statusClass = status ? statusStyles[status] ?? 'bg-muted text-muted-foreground border-border' : null;
@@ -43,7 +44,7 @@ export function BookingCard({ booking }: BookingCardProps) {
           </h3>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <Tag className="h-3.5 w-3.5" />
-            <span className="truncate">{booking.listingId}</span>
+            <span className="truncate">{listingName ?? booking.listingId}</span>
           </p>
         </div>
         {statusClass && (

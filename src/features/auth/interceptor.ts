@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { apiClient } from './api';
-import { useAuthStore } from './store';
+import { useAuthStore, type User } from './store';
 
 // Flag para evitar múltiples refreshes simultáneos
 let isRefreshing = false;
@@ -22,7 +22,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 // Request interceptor: inyecta Access Token en cada petición
 apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
+  const token = useAuthStore.getState().idToken;
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
@@ -65,10 +65,14 @@ apiClient.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const newAccessToken = res.data.accessToken;
-        const user = res.data.user;
-
-        useAuthStore.getState().setCredentials(user, newAccessToken);
+        const { accessToken: newAccessToken, idToken: newIdToken, user } = res.data;
+        const mappedUser: User = {
+          id: user.userId,
+          email: user.email,
+          name: user.fullName,
+          role: user.role,
+        };
+        useAuthStore.getState().setCredentials(mappedUser, newAccessToken, newIdToken);
         processQueue(null, newAccessToken);
 
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;

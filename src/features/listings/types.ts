@@ -1,5 +1,6 @@
 export interface Listing {
   listingId: string;
+  ownerId?: string;
   title: string;
   price: number;
   hostId?: string;

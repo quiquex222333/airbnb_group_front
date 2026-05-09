@@ -1,35 +1,41 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Listing } from './types';
+import { apiClient } from '@/features/auth/api';
 
 interface ListingsState {
   myListings: Listing[];
+  allListings: Listing[];  // 👈 NUEVO — para guests
   addListing: (listing: Listing) => void;
   removeListing: (listingId: string) => void;
+  fetchMyListings: () => Promise<void>;   // 👈 NUEVO
+  fetchAllListings: () => Promise<void>;  // 👈 NUEVO
   clear: () => void;
 }
 
-/**
- * Backend no expone GET /listings, así que guardamos localmente
- * los listings que el usuario crea desde esta sesión / dispositivo.
- * No es la fuente de verdad — solo conveniencia para la UI.
- */
 export const useListingsStore = create<ListingsState>()(
   persist(
     (set) => ({
       myListings: [],
+      allListings: [],
       addListing: (listing) =>
         set((state) => {
-          if (state.myListings.some((l) => l.listingId === listing.listingId)) {
-            return state;
-          }
+          if (state.myListings.some((l) => l.listingId === listing.listingId)) return state;
           return { myListings: [listing, ...state.myListings] };
         }),
       removeListing: (listingId) =>
         set((state) => ({
           myListings: state.myListings.filter((l) => l.listingId !== listingId),
         })),
-      clear: () => set({ myListings: [] }),
+      fetchMyListings: async () => {
+        const { data } = await apiClient.get('/listings/my');
+        set({ myListings: data.listings ?? [] });
+      },
+      fetchAllListings: async () => {
+        const { data } = await apiClient.get('/listings');
+        set({ allListings: data.listings ?? [] });
+      },
+      clear: () => set({ myListings: [], allListings: [] }),
     }),
     {
       name: 'airbnb-my-listings',

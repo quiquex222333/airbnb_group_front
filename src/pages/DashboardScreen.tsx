@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/features/auth/store";
@@ -7,12 +8,8 @@ import { ListingCard } from "@/features/listings/components/ListingCard";
 import { useListingsStore } from "@/features/listings/store";
 import { useEnsureInternalUser } from "@/features/users/useEnsureInternalUser";
 import {
-  ArrowUpRight,
-  CalendarPlus,
-  HomeIcon,
-  PlaneIcon,
-  PlusCircle,
-  Sparkles,
+  ArrowUpRight, CalendarPlus, HomeIcon,
+  PlaneIcon, PlusCircle, Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,30 +18,53 @@ export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user);
   const myListings = useListingsStore((s) => s.myListings);
   const myBookings = useBookingsStore((s) => s.myBookings);
+  const fetchMyListings = useListingsStore((s) => s.fetchMyListings);
+  const fetchAllListings = useListingsStore((s) => s.fetchAllListings);
+  const fetchMyBookings = useBookingsStore((s) => s.fetchMyBookings);
 
   useEnsureInternalUser();
+
+  // NUEVO — cargar datos según rol
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === 'host') {
+      fetchMyListings();
+    } else {
+      fetchAllListings();
+      fetchMyBookings();
+    }
+  }, [user?.role]);
 
   if (!user) return null;
 
   const recentListings = myListings.slice(0, 3);
   const recentBookings = myBookings.slice(0, 3);
+  const isHost = user.role === 'host';
 
   return (
     <DashboardLayout
       title={`Hola, ${user.name?.split(" ")[0] ?? "viajero"}`}
-      description="Resumen rápido de tu actividad como anfitrión y como huésped."
+      description={isHost
+        ? "Gestiona tus alojamientos y reservas recibidas."
+        : "Explora alojamientos y gestiona tus viajes."}
       actions={
         <>
-          <Button
-            variant="outline"
-            className="rounded-full"
-            onClick={() => navigate("/trips/new")}
-          >
-            <CalendarPlus className="mr-1.5 h-4 w-4" /> Nueva reserva
-          </Button>
-          <Button className="rounded-full" onClick={() => navigate("/host/listings/new")}>
-            <PlusCircle className="mr-1.5 h-4 w-4" /> Publicar alojamiento
-          </Button>
+          {/* Solo guest ve Nueva reserva */}
+          {!isHost && (
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => navigate("/trips/new")}
+            >
+              <CalendarPlus className="mr-1.5 h-4 w-4" /> Nueva reserva
+            </Button>
+          )}
+          {/* Solo host ve Publicar alojamiento */}
+          {isHost && (
+            <Button className="rounded-full" onClick={() => navigate("/host/listings/new")}>
+              <PlusCircle className="mr-1.5 h-4 w-4" /> Publicar alojamiento
+            </Button>
+          )}
         </>
       }
     >
@@ -64,126 +84,127 @@ export default function DashboardScreen() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/host/listings")}
-          className="group flex flex-col items-start rounded-3xl border border-border bg-card p-6 text-left shadow-sm transition-shadow hover:shadow-md"
-        >
-          <div className="flex w-full items-center justify-between">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
-              <HomeIcon className="h-5 w-5" />
+        {/* Card alojamientos — solo host */}
+        {isHost && (
+          <button
+            type="button"
+            onClick={() => navigate("/host/listings")}
+            className="group flex flex-col items-start rounded-3xl border border-border bg-card p-6 text-left shadow-sm transition-shadow hover:shadow-md"
+          >
+            <div className="flex w-full items-center justify-between">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
+                <HomeIcon className="h-5 w-5" />
+              </div>
+              <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </div>
-            <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </div>
-          <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Mis alojamientos
-          </p>
-          <p className="text-3xl font-bold">{myListings.length}</p>
-          <p className="text-xs text-muted-foreground">publicados en esta sesión</p>
-        </button>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Mis alojamientos
+            </p>
+            <p className="text-3xl font-bold">{myListings.length}</p>
+            <p className="text-xs text-muted-foreground">publicados</p>
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => navigate("/trips")}
-          className="group flex flex-col items-start rounded-3xl border border-border bg-card p-6 text-left shadow-sm transition-shadow hover:shadow-md"
-        >
-          <div className="flex w-full items-center justify-between">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
-              <PlaneIcon className="h-5 w-5" />
+        {/* Card viajes — solo guest */}
+        {!isHost && (
+          <button
+            type="button"
+            onClick={() => navigate("/trips")}
+            className="group flex flex-col items-start rounded-3xl border border-border bg-card p-6 text-left shadow-sm transition-shadow hover:shadow-md"
+          >
+            <div className="flex w-full items-center justify-between">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
+                <PlaneIcon className="h-5 w-5" />
+              </div>
+              <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </div>
-            <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </div>
-          <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Mis viajes
+            <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Mis viajes
+            </p>
+            <p className="text-3xl font-bold">{myBookings.length}</p>
+            <p className="text-xs text-muted-foreground">reservas</p>
+          </button>
+        )}
+
+        {/* Tercer card — tipo de cuenta */}
+        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Tipo de cuenta</p>
+          <h2 className="text-2xl font-bold mt-2">{isHost ? 'Anfitrión' : 'Huésped'}</h2>
+          <p className="text-sm text-blue-500 font-medium mt-1">
+            {isHost ? 'Publica y gestiona alojamientos' : 'Explora y reserva alojamientos'}
           </p>
-          <p className="text-3xl font-bold">{myBookings.length}</p>
-          <p className="text-xs text-muted-foreground">reservas locales</p>
-        </button>
+        </div>
       </section>
 
-      {/* Recent listings */}
-      <section className="space-y-4">
-        <header className="flex items-end justify-between">
-          <div>
-            <h3 className="text-xl font-bold tracking-tight">Tus últimos alojamientos</h3>
-            <p className="text-sm text-muted-foreground">
-              Espacios que has publicado recientemente.
-            </p>
-          </div>
-          {myListings.length > 3 && (
-            <Button
-              variant="link"
-              size="sm"
-              className="text-primary"
-              onClick={() => navigate("/host/listings")}
-            >
-              Ver todos
-            </Button>
+      {/* Sección host — mis alojamientos */}
+      {isHost && (
+        <section className="space-y-4">
+          <header className="flex items-end justify-between">
+            <div>
+              <h3 className="text-xl font-bold tracking-tight">Tus últimos alojamientos</h3>
+              <p className="text-sm text-muted-foreground">Espacios que has publicado.</p>
+            </div>
+            {myListings.length > 3 && (
+              <Button variant="link" size="sm" className="text-primary"
+                onClick={() => navigate("/host/listings")}>
+                Ver todos
+              </Button>
+            )}
+          </header>
+          {recentListings.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 rounded-3xl border border-dashed border-border bg-muted/20 p-6">
+              <p className="text-sm text-muted-foreground">
+                Todavía no has publicado ningún alojamiento.
+              </p>
+              <Button size="sm" className="rounded-full"
+                onClick={() => navigate("/host/listings/new")}>
+                <PlusCircle className="mr-1.5 h-4 w-4" /> Publicar uno
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {recentListings.map((listing) => (
+                <ListingCard key={listing.listingId} listing={listing} variant="full" />
+              ))}
+            </div>
           )}
-        </header>
-        {recentListings.length === 0 ? (
-          <div className="flex flex-col items-start gap-3 rounded-3xl border border-dashed border-border bg-muted/20 p-6">
-            <p className="text-sm text-muted-foreground">
-              Todavía no has publicado ningún alojamiento en esta sesión.
-            </p>
-            <Button
-              size="sm"
-              className="rounded-full"
-              onClick={() => navigate("/host/listings/new")}
-            >
-              <PlusCircle className="mr-1.5 h-4 w-4" /> Publicar uno
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recentListings.map((listing) => (
-              <ListingCard key={listing.listingId} listing={listing} variant="full" />
-            ))}
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* Recent trips */}
-      <section className="space-y-4">
-        <header className="flex items-end justify-between">
-          <div>
-            <h3 className="text-xl font-bold tracking-tight">Tus últimos viajes</h3>
-            <p className="text-sm text-muted-foreground">
-              Reservas creadas o consultadas recientemente.
-            </p>
-          </div>
-          {myBookings.length > 3 && (
-            <Button
-              variant="link"
-              size="sm"
-              className="text-primary"
-              onClick={() => navigate("/trips")}
-            >
-              Ver todos
-            </Button>
+      {/* Sección guest — mis viajes */}
+      {!isHost && (
+        <section className="space-y-4">
+          <header className="flex items-end justify-between">
+            <div>
+              <h3 className="text-xl font-bold tracking-tight">Tus últimos viajes</h3>
+              <p className="text-sm text-muted-foreground">Reservas creadas recientemente.</p>
+            </div>
+            {myBookings.length > 3 && (
+              <Button variant="link" size="sm" className="text-primary"
+                onClick={() => navigate("/trips")}>
+                Ver todos
+              </Button>
+            )}
+          </header>
+          {recentBookings.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 rounded-3xl border border-dashed border-border bg-muted/20 p-6">
+              <p className="text-sm text-muted-foreground">
+                Aún no tienes reservas.
+              </p>
+              <Button size="sm" className="rounded-full"
+                onClick={() => navigate("/trips/new")}>
+                <CalendarPlus className="mr-1.5 h-4 w-4" /> Crear reserva
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {recentBookings.map((b) => (
+                <BookingCard key={b.bookingId} booking={b} />
+              ))}
+            </div>
           )}
-        </header>
-        {recentBookings.length === 0 ? (
-          <div className="flex flex-col items-start gap-3 rounded-3xl border border-dashed border-border bg-muted/20 p-6">
-            <p className="text-sm text-muted-foreground">
-              Aún no tienes reservas. Crea una desde un alojamiento existente.
-            </p>
-            <Button
-              size="sm"
-              className="rounded-full"
-              onClick={() => navigate("/trips/new")}
-            >
-              <CalendarPlus className="mr-1.5 h-4 w-4" /> Crear reserva
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {recentBookings.map((b) => (
-              <BookingCard key={b.bookingId} booking={b} />
-            ))}
-          </div>
-        )}
-      </section>
+        </section>
+      )}
     </DashboardLayout>
   );
 }

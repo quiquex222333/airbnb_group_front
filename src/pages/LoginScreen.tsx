@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../features/auth/api';
 import { useAuthStore } from '../features/auth/store';
+import type { User } from '../features/auth/store';
 
 const LoginScreen = () => {
   const navigate = useNavigate();
@@ -19,7 +20,15 @@ const LoginScreen = () => {
     setErrorMsg('');
     try {
       const res = await apiClient.post('/auth/login', { email, password });
-      setCredentials(res.data.user, res.data.accessToken);
+      const { user, accessToken, idToken } = res.data;
+      const mappedUser: User = {
+        id: user.userId,
+        cognitoSub: user.cognitoSub,
+        email: user.email,
+        name: user.fullName,
+        role: user.role,
+      };
+      setCredentials(mappedUser, accessToken, idToken);
       navigate('/dashboard');
     } catch (err: any) {
       console.log(err);

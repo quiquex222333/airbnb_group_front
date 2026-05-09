@@ -13,10 +13,11 @@ export default function CreateBookingScreen() {
   const [params] = useSearchParams();
   const initialListingId = params.get('listingId') ?? '';
 
-  const myListings = useListingsStore((s) => s.myListings);
+  // 👈 usar allListings en lugar de myListings
+  const allListings = useListingsStore((s) => s.allListings);
   const matchedListing = useMemo(
-    () => myListings.find((l) => l.listingId === initialListingId),
-    [myListings, initialListingId],
+    () => allListings.find((l) => l.listingId === initialListingId),
+    [allListings, initialListingId],
   );
 
   return (
@@ -34,6 +35,7 @@ export default function CreateBookingScreen() {
           <CreateBookingForm
             initialListingId={initialListingId}
             defaultPricePerNight={matchedListing?.price}
+            availableListings={allListings}  // 👈 NUEVO
             onSuccess={(booking) => {
               toast.success('Reserva creada', {
                 description: `bookingId: ${booking.bookingId}`,
@@ -42,25 +44,18 @@ export default function CreateBookingScreen() {
             }}
           />
         </div>
-
         <aside className="space-y-4">
           {matchedListing && (
             <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Reservando
-              </p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Reservando</p>
               <h3 className="mt-1 text-lg font-bold">{matchedListing.title}</h3>
               <Separator className="my-3" />
               <p className="text-sm">
                 <span className="font-semibold">${matchedListing.price} USD</span>
                 <span className="text-muted-foreground"> por noche</span>
               </p>
-              <p className="mt-2 break-all font-mono text-[11px] text-muted-foreground">
-                {matchedListing.listingId}
-              </p>
             </div>
           )}
-
           <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-primary" />
@@ -68,8 +63,7 @@ export default function CreateBookingScreen() {
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
               Tu solicitud viaja con tu sesión autenticada. Recibirás un{' '}
-              <span className="font-semibold text-foreground">bookingId</span> único que podrás
-              consultar en cualquier momento.
+              <span className="font-semibold text-foreground">bookingId</span> único.
             </p>
           </div>
         </aside>

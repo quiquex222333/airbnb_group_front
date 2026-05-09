@@ -5,10 +5,12 @@ import { Label } from '@/components/ui/label';
 import { createBooking } from '../api';
 import { useBookingsStore } from '../store';
 import type { Booking } from '../types';
+import type { Listing } from '@/features/listings/types';
 
 interface CreateBookingFormProps {
   initialListingId?: string;
   defaultPricePerNight?: number;
+  availableListings?: Listing[];  // NUEVO
   onSuccess?: (booking: Booking) => void;
 }
 
@@ -17,6 +19,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 export function CreateBookingForm({
   initialListingId = '',
   defaultPricePerNight,
+  availableListings = [],  // NUEVO
   onSuccess,
 }: CreateBookingFormProps) {
   const addBooking = useBookingsStore((s) => s.addBooking);
@@ -40,11 +43,15 @@ export function CreateBookingForm({
     return diff > 0 ? Math.round(diff) : 0;
   }, [checkIn, checkOut]);
 
+  // Precio dinámico según listing seleccionado
+  const selectedListing = availableListings.find(l => l.listingId === listingId);
+  const pricePerNight = selectedListing?.price ?? defaultPricePerNight;
+
   useEffect(() => {
-    if (defaultPricePerNight && nights > 0) {
-      setTotalAmount(defaultPricePerNight * nights);
+    if (pricePerNight && nights > 0) {
+      setTotalAmount(pricePerNight * nights);
     }
-  }, [defaultPricePerNight, nights]);
+  }, [pricePerNight, nights, listingId]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -97,20 +104,37 @@ export function CreateBookingForm({
     >
       <div className="space-y-2">
         <Label htmlFor="listingId" className="text-sm font-semibold">
-          Listing ID
+          Alojamiento
         </Label>
-        <div className="relative">
-          <Tag className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
+        {availableListings.length > 0 ? (
+          <select
             id="listingId"
-            type="text"
             required
             value={listingId}
             onChange={(e) => setListingId(e.target.value)}
-            placeholder="listing-demo-123"
-            className="h-12 w-full rounded-2xl border border-border bg-background pl-11 pr-4 font-mono text-sm outline-none transition-all focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-          />
-        </div>
+            className="h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm outline-none transition-all focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+          >
+            <option value="">-- Selecciona un alojamiento --</option>
+            {availableListings.map((l) => (
+              <option key={l.listingId} value={l.listingId}>
+                {l.title} — ${l.price}/noche
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div className="relative">
+            <Tag className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              id="listingId"
+              type="text"
+              required
+              value={listingId}
+              onChange={(e) => setListingId(e.target.value)}
+              placeholder="listing-demo-123"
+              className="h-12 w-full rounded-2xl border border-border bg-background pl-11 pr-4 font-mono text-sm outline-none transition-all focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-3 rounded-2xl border border-border p-3 sm:grid-cols-2">
@@ -121,6 +145,7 @@ export function CreateBookingForm({
           <input
             id="checkIn"
             type="date"
+            //disabled={!listingId}
             required
             value={checkIn}
             onChange={(e) => setCheckIn(e.target.value)}
@@ -171,8 +196,8 @@ export function CreateBookingForm({
             <input
               id="totalAmount"
               type="number"
-              min={1}
-              step="1"
+              readOnly
+              min={1}   
               required
               value={totalAmount}
               onChange={(e) => setTotalAmount(Number(e.target.value))}
