@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { apiClient } from '../features/auth/api';
 import { useAuthStore } from '../features/auth/store';
+import type { User } from '../features/auth/types';
 import BookingDetailScreen from '../pages/BookingDetailScreen';
 import CreateBookingScreen from '../pages/CreateBookingScreen';
 import CreateListingScreen from '../pages/CreateListingScreen';
@@ -27,8 +28,16 @@ export const AppRouter = () => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const res = await apiClient.post('/auth/refresh');
-        setCredentials(res.data.user, res.data.accessToken);
+          const res = await apiClient.post('/auth/refresh');
+          const { user, accessToken, idToken } = res.data;
+          const mappedUser: User = {
+            id: user.userId,
+            cognitoSub: user.cognitoSub,
+            email: user.email,
+            name: user.fullName,
+            role: user.role,
+          };
+          setCredentials(mappedUser, accessToken, idToken);
       } catch {
         console.log("No active session found — clearing stale credentials");
         logout();
