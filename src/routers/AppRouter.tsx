@@ -1,18 +1,24 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from '../features/auth/store';
-import { apiClient } from '../features/auth/api';
 import { Loader2, PlaneTakeoff } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { apiClient } from '../features/auth/api';
+import { useAuthStore } from '../features/auth/store';
+import type { User } from '../features/auth/types';
+import BookingDetailScreen from '../pages/BookingDetailScreen';
+import CreateBookingScreen from '../pages/CreateBookingScreen';
+import CreateListingScreen from '../pages/CreateListingScreen';
+import DashboardScreen from '../pages/DashboardScreen';
+import HomeScreen from '../pages/HomeScreen';
+import HostListingsScreen from '../pages/HostListingsScreen';
+import ListingReviewsScreen from '../pages/ListingReviewsScreen';
 import LoginScreen from '../pages/LoginScreen';
+import MyTripsScreen from '../pages/MyTripsScreen';
 import RegisterScreen from '../pages/RegisterScreen';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
-
-import HomeScreen from '../pages/HomeScreen';
-import DashboardScreen from '../pages/DashboardScreen';
 
 export const AppRouter = () => {
   const [isChecking, setIsChecking] = useState(true);
@@ -22,10 +28,17 @@ export const AppRouter = () => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Intentamos recuperar sesión con la Cookie HttpOnly
-        const res = await apiClient.post('/auth/refresh');
-        setCredentials(res.data.user, res.data.accessToken);
-      } catch (err) {
+          const res = await apiClient.post('/auth/refresh');
+          const { user, accessToken, idToken } = res.data;
+          const mappedUser: User = {
+            id: user.userId,
+            cognitoSub: user.cognitoSub,
+            email: user.email,
+            name: user.fullName,
+            role: user.role,
+          };
+          setCredentials(mappedUser, accessToken, idToken);
+      } catch {
         console.log("No active session found — clearing stale credentials");
         logout();
       } finally {
@@ -50,20 +63,76 @@ export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta Pública Principal */}
+        {/* Pública */}
         <Route path="/" element={<HomeScreen />} />
-
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
-        
-        {/* Rutas Privadas */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <DashboardScreen />
-          </ProtectedRoute>
-        } />
 
-        {/* Fallback a Home en lugar de Login para vista pública */}
+        {/* Privadas */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Anfitrión */}
+        <Route
+          path="/host/listings"
+          element={
+            <ProtectedRoute>
+              <HostListingsScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/host/listings/new"
+          element={
+            <ProtectedRoute>
+              <CreateListingScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Viajes / reservas */}
+        <Route
+          path="/trips"
+          element={
+            <ProtectedRoute>
+              <MyTripsScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trips/new"
+          element={
+            <ProtectedRoute>
+              <CreateBookingScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trips/:bookingId"
+          element={
+            <ProtectedRoute>
+              <BookingDetailScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Reseñas por listing */}
+        <Route
+          path="/listings/:listingId/reviews"
+          element={
+            <ProtectedRoute>
+              <ListingReviewsScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
