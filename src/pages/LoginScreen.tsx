@@ -23,7 +23,7 @@ const LoginScreen = () => {
       const { user, accessToken, idToken } = res.data;
       const mappedUser: User = {
         id: user.userId,
-        cognitoSub: user.cognitoSub,
+        cognitoSub: user.cognitoSub ?? user.sub ?? user.userId,
         email: user.email,
         name: user.fullName,
         role: user.role,
