@@ -8,6 +8,8 @@ import { ReviewList } from '@/features/reviews/components/ReviewList';
 import { CreateReviewForm } from '@/features/reviews/components/CreateReviewForm';
 import { getReviewsByListing } from '@/features/reviews/api';
 import type { Review } from '@/features/reviews/types';
+import { useAuthStore } from '@/features/auth/store';
+import { useListingsStore } from '@/features/listings/store';
 
 export default function ListingReviewsScreen() {
   const navigate = useNavigate();
@@ -16,6 +18,12 @@ export default function ListingReviewsScreen() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const user = useAuthStore((s) => s.user);
+  const allListings = useListingsStore((s) => s.allListings);
+  const myListings = useListingsStore((s) => s.myListings);
+
+  const isOwner = [...myListings, ...allListings]
+  .find(l => l.listingId === listingId)?.ownerId === user?.cognitoSub;
 
   const loadReviews = useCallback(async () => {
     if (!listingId) return;
@@ -81,13 +89,21 @@ export default function ListingReviewsScreen() {
         </div>
 
         <aside className="lg:col-span-1">
-          <CreateReviewForm
-            listingId={listingId}
-            onSuccess={(review) => {
-              toast.success('¡Gracias por tu reseña!');
-              setReviews((prev) => [review, ...prev]);
-            }}
-          />
+          {isOwner ? (
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+              <p className="text-sm text-muted-foreground text-center">
+                No puedes reseñar tu propio alojamiento.
+              </p>
+            </div>
+          ) : (
+            <CreateReviewForm
+              listingId={listingId}
+              onSuccess={(review) => {
+                toast.success('¡Gracias por tu reseña!');
+                setReviews((prev) => [review, ...prev]);
+              }}
+            />
+          )}
         </aside>
       </div>
     </DashboardLayout>

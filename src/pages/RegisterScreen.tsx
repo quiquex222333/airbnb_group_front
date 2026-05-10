@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const RegisterScreen = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'guest' });
+  const [formData, setFormData] = useState({ fullName: '', email: '', password: '', confirmPassword: '', role: 'guest' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmCode, setConfirmCode] = useState('');
@@ -41,7 +41,7 @@ const RegisterScreen = () => {
     setIsLoading(true);
     setMsg({ text: '', type: '' });
     try {
-      await apiClient.post('/auth/confirm', { email: formData.email, code: confirmCode });
+      await apiClient.post('/auth/confirm', { email: formData.email, confirmationCode: confirmCode });
       setMsg({ text: '¡Cuenta confirmada exitosamente! Ya puedes iniciar sesión.', type: 'success' });
       setTimeout(() => navigate('/login'), 2500);
     } catch (err: any) {
@@ -97,7 +97,7 @@ const RegisterScreen = () => {
               <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input 
                 type="text" required placeholder="Tu Nombre Completo"
-                value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
+                value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})}
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white/70 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
             </div>
