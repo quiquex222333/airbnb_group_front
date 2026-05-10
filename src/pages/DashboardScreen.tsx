@@ -19,7 +19,7 @@ export default function DashboardScreen() {
           <div className="grid auto-rows-min gap-6 md:grid-cols-3 mt-4">
              <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Bienvenido,</p>
-                <h2 className="text-2xl font-bold">{user.name}</h2>
+                <h2 className="text-2xl font-bold">{user.fullName}</h2>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
              </div>
              <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
