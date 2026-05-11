@@ -60,7 +60,7 @@ apiClient.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}/auth/refresh`,
+          `${import.meta.env.VITE_API_URL || '/v1'}/auth/refresh`,
           {},
           { withCredentials: true }
         );
@@ -68,6 +68,7 @@ apiClient.interceptors.response.use(
         const { accessToken: newAccessToken, idToken: newIdToken, user } = res.data;
         const mappedUser: User = {
           id: user.userId,
+          cognitoSub: user.cognitoSub ?? user.sub ?? user.userId,
           email: user.email,
           name: user.fullName,
           role: user.role,

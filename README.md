@@ -1,73 +1,124 @@
-# React + TypeScript + Vite
+# Airbnb Group Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación frontend del proyecto académico de arquitectura en la nube y microservicios, inspirada en flujos clave de Airbnb: autenticación, publicación de alojamientos, reservas y reseñas.
 
-Currently, two official plugins are available:
+## Características principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Registro y confirmación de cuenta.
+- Inicio/cierre de sesión con refresco automático de sesión.
+- Dashboard con comportamiento por rol (`guest` y `host`).
+- Publicación y gestión local de alojamientos.
+- Creación y consulta de reservas.
+- Reseñas por alojamiento (con bloqueo de autorreseña para el dueño).
+- UI moderna con `Tailwind CSS v4` + componentes `shadcn`.
 
-## React Compiler
+## Stack tecnológico
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `React 18` + `TypeScript`
+- `Vite 6`
+- `Tailwind CSS v4`
+- `shadcn/ui` + `lucide-react`
+- `Zustand` (estado global y persistencia local)
+- `Axios` (cliente HTTP con interceptores de auth)
 
-## Expanding the ESLint configuration
+## Estructura del proyecto
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```txt
+src/
+  components/         # UI reutilizable y layout
+  features/
+    auth/             # login, tokens, store e interceptor
+    listings/         # alta/listado de alojamientos
+    bookings/         # creación y detalle de reservas
+    reviews/          # creación y listado de reseñas
+    users/            # sincronización de usuario interno
+  pages/              # pantallas por ruta
+  routers/            # definición de rutas protegidas/públicas
+  main.tsx            # punto de entrada real (usa AppRouter)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Nota: `src/App.tsx` quedó como archivo de plantilla, pero la app corre con `src/main.tsx` + `src/routers/AppRouter.tsx`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Requisitos
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `Node.js` 20 o superior (recomendado)
+- `npm` 10 o superior
+- Backend/API Gateway de microservicios disponible
+
+## Configuración de entorno
+
+1. Copia el archivo de variables:
+
+```bash
+cp template.env .env
 ```
+
+2. Configura las variables:
+
+```env
+VITE_API_URL=/v1
+VITE_API_TARGET=https://tu-api-gateway.amazonaws.com/prod
+```
+
+### ¿Para qué sirve cada variable?
+
+- `VITE_API_URL`: base URL usada por Axios en el frontend.
+- `VITE_API_TARGET`: destino del proxy de Vite para desarrollo local.
+
+En desarrollo, Vite proxya rutas `/v1/*` hacia `VITE_API_TARGET`.
+
+## Ejecución local
+
+```bash
+npm install
+npm run dev
+```
+
+La app quedará disponible en `http://localhost:5173`.
+
+## Scripts disponibles
+
+- `npm run dev`: levanta servidor de desarrollo.
+- `npm run build`: compila TypeScript y genera build de producción.
+- `npm run preview`: sirve localmente el build generado.
+- `npm run lint`: ejecuta ESLint.
+
+## Rutas principales
+
+### Públicas
+
+- `/`
+- `/login`
+- `/register`
+
+### Protegidas
+
+- `/dashboard`
+- `/host/listings`
+- `/host/listings/new`
+- `/trips`
+- `/trips/new`
+- `/trips/:bookingId`
+- `/listings/:listingId/reviews`
+
+## Integración con backend (endpoints esperados)
+
+El frontend consume principalmente estos endpoints:
+
+- Auth: `POST /auth/register`, `POST /auth/confirm`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`
+- Listings: `GET /listings`, `GET /listings/my`, `POST /listings`
+- Bookings: `GET /bookings/my`, `GET /bookings/:bookingId`, `POST /bookings`
+- Reviews: `GET /reviews/listing/:listingId`, `POST /reviews`
+- Users interno: `POST /users`
+
+## Notas importantes de autenticación
+
+- El cliente usa `withCredentials: true` para enviar cookies (refresh token).
+- Se inyecta `Authorization: Bearer <token>` en requests autenticados.
+- Si llega un `401`, se intenta `refresh` automático y se reintenta la petición original.
+
+## Estado actual del proyecto
+
+- Incluye linting con ESLint.
+- No hay tests automatizados configurados aún.
+- Se usa persistencia local (`localStorage`) para stores de listings/bookings.
