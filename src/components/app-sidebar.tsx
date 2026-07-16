@@ -8,12 +8,13 @@ import {
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import {
-  LayoutDashboardIcon, HomeIcon, PlaneIcon, PlusCircleIcon,
+  BrainCircuitIcon, LayoutDashboardIcon, HomeIcon, PlaneIcon, PlusCircleIcon,
 } from "lucide-react"
 
 const hostNav: NavMainItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: <LayoutDashboardIcon /> },
   { title: "Mis alojamientos", url: "/host/listings", icon: <HomeIcon />, matchPaths: ["/host"] },
+  { title: "Segmentación ML", url: "/host/market-segmentation", icon: <BrainCircuitIcon /> },
 ]
 
 const guestNav: NavMainItem[] = [
