@@ -2,6 +2,14 @@
 
 Aplicación frontend del proyecto académico de arquitectura en la nube y microservicios, inspirada en flujos clave de Airbnb: autenticación, publicación de alojamientos, reservas y reseñas.
 
+## Repositorios relacionados
+
+- [Infraestructura y guia completa de ejecucion](https://github.com/quiquex222333/airbnb_group_infrastruture)
+- [Servicios Lambda](https://github.com/quiquex222333/airbnb_group_back)
+- [Entrenamiento y artefactos MLOps](https://github.com/quiquex222333/protecto_modulo_15)
+
+En la estructura multi-repo, esta carpeta debe estar al mismo nivel que `airbnb_group_infrastruture` y `airbnb_group_services`, porque CDK compila y publica el frontend durante el deploy.
+
 ## Características principales
 
 - Registro y confirmación de cuenta.
@@ -10,6 +18,7 @@ Aplicación frontend del proyecto académico de arquitectura en la nube y micros
 - Publicación y gestión local de alojamientos.
 - Creación y consulta de reservas.
 - Reseñas por alojamiento (con bloqueo de autorreseña para el dueño).
+- Segmentación de mercado para anfitriones mediante el modelo K-Means.
 - UI moderna con `Tailwind CSS v4` + componentes `shadcn`.
 
 ## Stack tecnológico
@@ -96,6 +105,7 @@ La app quedará disponible en `http://localhost:5173`.
 - `/dashboard`
 - `/host/listings`
 - `/host/listings/new`
+- `/host/market-segmentation`
 - `/trips`
 - `/trips/new`
 - `/trips/:bookingId`
@@ -110,6 +120,7 @@ El frontend consume principalmente estos endpoints:
 - Bookings: `GET /bookings/my`, `GET /bookings/:bookingId`, `POST /bookings`
 - Reviews: `GET /reviews/listing/:listingId`, `POST /reviews`
 - Users interno: `POST /users`
+- ML: `POST /ml/predict`
 
 ## Notas importantes de autenticación
 

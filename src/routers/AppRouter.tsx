@@ -11,6 +11,7 @@ import HomeScreen from '../pages/HomeScreen';
 import HostListingsScreen from '../pages/HostListingsScreen';
 import ListingReviewsScreen from '../pages/ListingReviewsScreen';
 import LoginScreen from '../pages/LoginScreen';
+import MarketSegmentationScreen from '../pages/MarketSegmentationScreen';
 import MyTripsScreen from '../pages/MyTripsScreen';
 import RegisterScreen from '../pages/RegisterScreen';
 
@@ -91,6 +92,14 @@ export const AppRouter = () => {
           element={
             <ProtectedRoute>
               <CreateListingScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/host/market-segmentation"
+          element={
+            <ProtectedRoute>
+              <MarketSegmentationScreen />
             </ProtectedRoute>
           }
         />
